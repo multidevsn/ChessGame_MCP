@@ -1,4 +1,4 @@
-import { App } from "@modelcontextprotocol/ext-apps";
+import { App, PostMessageTransport } from "@modelcontextprotocol/ext-apps";
 import { applyDocumentTheme, applyHostStyleVariables, applyHostFonts } from "@modelcontextprotocol/ext-apps";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -306,7 +306,8 @@ const saved = window.openai?.widgetState;
 if (saved?.fen) state = { ...state, ...saved };
 
 render();
-app.connect().catch(error => {
+const transport = new PostMessageTransport(window.parent, window.parent);
+app.connect(transport).catch(error => {
   document.getElementById("status").textContent = "MCP App connection error";
   console.error(error);
 });
