@@ -206,6 +206,19 @@ async function play(from, to) {
       arguments: { fen: state.fen, from, to, promotion: "q" }
     });
     applyResult(result);
+
+    // A widget click is a real turn: ask the host/model to continue immediately.
+    // This removes the need for the player to type "ok" / "joue" after every move.
+    const data = result?.structuredContent ?? parseTextResult(result);
+    if (data?.fen && data.turn === "black" && !data.gameOver) {
+      const moveText = data.move?.san || `${from}-${to}`;
+      if (window.openai?.sendFollowUpMessage) {
+        await window.openai.sendFollowUpMessage({
+          prompt: `The human just played ${moveText}. It is now Black's turn. Continue the chess game immediately: choose one legal Black move using play_move with the latest FEN from the tool result. Do not ask the human to confirm or say ok. After your move, let the board update.`,
+          scrollToBottom: false
+        });
+      }
+    }
   } catch (error) {
     document.getElementById("status").textContent = error?.message || "Illegal move";
   } finally {
