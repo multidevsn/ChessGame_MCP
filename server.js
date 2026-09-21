@@ -60,9 +60,9 @@ function createServer() {
     {
       instructions:
         "ChessGame is an interactive chess MCP App. Use show_board when the user wants to start or view a game. " +
-        "Use play_move for legal chess moves and return the updated position. The UI is the visual board. " +
-        "The server state returned by each tool is authoritative. Keep using the returned FEN for subsequent moves. " +
-        "The human is White unless the conversation explicitly says otherwise."
+        "The human is White unless the conversation explicitly says otherwise. When the human plays a move, immediately continue by choosing and playing a legal Black move with play_move; never wait for an extra confirmation such as ok, joue, or j'ai fini. " +
+        "Use the latest FEN returned by the previous tool result. The UI is the visual board and the server state returned by each tool is authoritative. " +
+        "After your Black move, stop and wait for the human's next board move."
     }
   );
 
