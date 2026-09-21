@@ -141,7 +141,7 @@ function createServer() {
     server,
     "ChessGame Board",
     RESOURCE_URI,
-    { mimeType: RESOURCE_MIME_TYPE, _meta: { ui: { prefersBorder: true } } },
+    { mimeType: RESOURCE_MIME_TYPE, _meta: { ui: { prefersBorder: true, domain: "https://chessgame-mcp.onrender.com", csp: { connectDomains: [], resourceDomains: [] } } } },
     async () => {
       const html = await fs.readFile(path.join(DIST_DIR, "mcp-app.html"), "utf8");
       return {
