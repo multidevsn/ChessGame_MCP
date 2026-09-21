@@ -189,6 +189,42 @@ async function handleMcp(req, res) {
 
 app.all("/mcp", handleMcp);
 
+app.post("/api/chess/position", (req, res) => {
+  try {
+    res.json(state(gameFromFen(req.body?.fen)));
+  } catch {
+    res.status(400).json({ error: "Invalid FEN" });
+  }
+});
+
+app.post("/api/chess/legal", (req, res) => {
+  try {
+    const game = gameFromFen(req.body?.fen);
+    const square = req.body?.square;
+    const moves = game.moves(square ? { square, verbose: true } : { verbose: true });
+    res.json({ moves });
+  } catch {
+    res.status(400).json({ error: "Invalid FEN or square" });
+  }
+});
+
+app.post("/api/chess/move", (req, res) => {
+  try {
+    const { fen, from, to, promotion = "q" } = req.body || {};
+    const game = gameFromFen(fen);
+    const move = game.move({ from, to, promotion });
+    if (!move) return res.status(400).json({ error: "Illegal move" });
+    res.json({ move, ...state(game) });
+  } catch (error) {
+    res.status(400).json({ error: error?.message || "Illegal move" });
+  }
+});
+
+app.post("/api/chess/reset", (_req, res) => {
+  res.json(state(new Chess()));
+});
+
+
 app.get("/api/mcp", (_req, res) => {
   res.json({
     name: "ChessGame MCP",
