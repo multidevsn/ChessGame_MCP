@@ -169,18 +169,31 @@ app.get("/", async (_req, res) => {
 
 app.use(express.static(__dirname));
 
-const mcpHandler = createMcpHandler(createServer);
-const mcpNodeHandler = toNodeHandler(mcpHandler);
+const mcpHandler = createMcpHandler(createServer, { responseMode: "json" });
+
+const mcpNodeHandler = toNodeHandler(mcpHandler, {
+  onerror: (error) => {
+    console.error(
+      "[MCP ADAPTER ERROR]",
+      error instanceof Error ? error.stack || error.message : error
+    );
+  }
+});
 
 app.all("/mcp", (req, res) => {
-  console.log("[MCP REQUEST]", req.method, req.originalUrl, "content-type=", req.headers["content-type"] || "");
-  res.on("finish", () => console.log("[MCP RESPONSE]", req.method, req.originalUrl, res.statusCode));
-  void mcpNodeHandler(req, res, req.body).catch(error => {
-    console.error("[MCP HANDLER ERROR]", error);
-    if (!res.headersSent) {
-      res.status(500).json({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
-    }
-  });
+  console.log(
+    "[MCP REQUEST]",
+    req.method,
+    req.originalUrl,
+    "content-type=",
+    req.headers["content-type"] || "",
+    "body=",
+    JSON.stringify(req.body ?? null)
+  );
+  res.on("finish", () =>
+    console.log("[MCP RESPONSE]", req.method, req.originalUrl, res.statusCode)
+  );
+  void mcpNodeHandler(req, res, req.body);
 });
 
 app.post("/api/chess/position", (req, res) => {
