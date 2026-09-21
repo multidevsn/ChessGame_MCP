@@ -204,7 +204,7 @@ app.get("/", async (_req, res) => {
 
 app.use(express.static(__dirname));
 
-app.all("/mcp", async (req, res) => {
+async function handleMcp(req, res) {
   const server = createServer();
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: undefined
@@ -228,7 +228,12 @@ app.all("/mcp", async (req, res) => {
       });
     }
   }
-});
+}
+
+app.all("/mcp", handleMcp);
+
+// Backward-compatible alias so an already-connected client using /api/mcp keeps working.
+app.all("/api/mcp", handleMcp);
 
 app.get("/api/mcp", (_req, res) => {
   res.json({
