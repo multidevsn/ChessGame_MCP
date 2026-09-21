@@ -3,6 +3,7 @@ import cors from "cors";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { Chess } from "chess.js";
 import { z } from "zod";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
@@ -18,6 +19,15 @@ const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT || 10000);
 const DIST_DIR = path.join(__dirname, "dist");
 const RESOURCE_URI = "ui://chessgame/board-v2.html";
+
+async function ensureMcpAppBuild() {
+  try {
+    await fs.access(path.join(DIST_DIR, "mcp-app.html"));
+  } catch {
+    console.log("MCP App bundle missing; building with Vite…");
+    execFileSync("npx", ["vite", "build"], { stdio: "inherit" });
+  }
+}
 
 function gameFromFen(fen) {
   return fen ? new Chess(fen) : new Chess();
@@ -219,6 +229,8 @@ app.get("/api/mcp", (_req, res) => {
 app.all("/api/mcp", (req, res) => {
   void mcpNodeHandler(req, res, req.body);
 });
+
+await ensureMcpAppBuild();
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`ChessGame MCP App listening on 0.0.0.0:${PORT}/mcp`);
