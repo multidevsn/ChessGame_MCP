@@ -47,7 +47,7 @@ async function call(name,args={}){
     sync.innerHTML='<span class="dot"></span> Server connected';return data
   }catch(e){sync.innerHTML='<span class="dot"></span> Connection error';mcpOut.textContent=e.message;throw e}
 }
-async function syncPosition(){const data=await call("get_position",{fen:state.fen});state=data;render()}
+async function syncPosition(){const data=await call("get_position",{});state=data;render()}
 async function showLegal(sq){try{const data=await call("legal_moves",{fen:state.fen,square:sq});legal=data.moves||[];render()}catch{legal=[];render()}}
 async function clickSquare(sq){
   if(state.gameOver)return;
