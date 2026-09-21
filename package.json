@@ -1,6 +1,6 @@
 {
   "name": "chessgame-mcp",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "description": "Chess MCP App with an embedded interactive UI for ChatGPT and MCP Apps hosts",
@@ -9,12 +9,13 @@
     "start": "npm run build && node server.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/ext-apps": "^1.7.0",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/ext-apps": "^2.0.0",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "chess.js": "0.10.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "zod": "^4.1.5"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "vite": "^6.0.0",
