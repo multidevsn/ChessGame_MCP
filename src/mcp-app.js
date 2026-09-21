@@ -207,16 +207,38 @@ async function play(from, to) {
     });
     applyResult(result);
 
-    // A widget click is a real turn: ask the host/model to continue immediately.
-    // This removes the need for the player to type "ok" / "joue" after every move.
+    // A widget click is a real turn: update the model context, then trigger
+    // a standard MCP Apps follow-up message. This is the portable MCP Apps
+    // mechanism and avoids requiring the human to type "ok" / "joue".
     const data = result?.structuredContent ?? parseTextResult(result);
     if (data?.fen && data.turn === "black" && !data.gameOver) {
       const moveText = data.move?.san || `${from}-${to}`;
-      if (window.openai?.sendFollowUpMessage) {
-        await window.openai.sendFollowUpMessage({
-          prompt: `The human just played ${moveText}. It is now Black's turn. Continue the chess game immediately: choose one legal Black move using play_move with the latest FEN from the tool result. Do not ask the human to confirm or say ok. After your move, let the board update.`,
-          scrollToBottom: false
-        });
+
+      await app.updateModelContext({
+        structuredContent: {
+          chessEvent: "human_move",
+          humanMove: moveText,
+          fen: data.fen,
+          turn: data.turn,
+          history: data.history,
+          gameOver: data.gameOver
+        },
+        content: [{
+          type: "text",
+          text: `The human just played ${moveText}. The latest authoritative chess position is ${data.fen}. It is now Black's turn.`
+        }]
+      });
+
+      const followUp = await app.sendMessage({
+        role: "user",
+        content: [{
+          type: "text",
+          text: "Continue the chess game immediately. Choose one legal Black move from the latest position and play it with play_move. Do not ask the human to confirm or type anything. After your Black move, stop and wait for the human's next board move."
+        }]
+      });
+
+      if (followUp?.isError) {
+        console.warn("MCP Apps host rejected automatic follow-up message", followUp);
       }
     }
   } catch (error) {
