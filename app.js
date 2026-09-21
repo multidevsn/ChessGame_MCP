@@ -39,7 +39,7 @@ async function call(name,args={}){
     sync.innerHTML='<span class="dot"></span> MCP connected';return parsed
   }catch(e){sync.innerHTML='<span class="dot"></span> MCP error';mcpOut.textContent=e.message;throw e}
 }
-async function syncPosition(fen){const data=await call("get_position",{fen});state=data;render()}
+async function syncPosition(){const data=await call("get_position",{});state=data;render()}
 async function showLegal(sq){try{const data=await call("legal_moves",{fen:state.fen,square:sq});legal=data.moves||[];render()}catch{legal=[];render()}}
 async function clickSquare(sq){
   if(state.gameOver)return;
@@ -60,4 +60,4 @@ document.getElementById("copyFen").onclick=()=>navigator.clipboard?.writeText(st
 document.getElementById("mcpPosition").onclick=()=>call("get_position",{fen:state.fen});
 document.getElementById("mcpMoves").onclick=()=>call("legal_moves",{fen:state.fen});
 document.getElementById("mcpStatus").onclick=()=>call("game_status",{fen:state.fen});
-render();syncPosition(state.fen).catch(()=>render());
+render();syncPosition().catch(()=>{status.textContent="Impossible de synchroniser la position MCP";render()});
