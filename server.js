@@ -5,8 +5,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
 import { z } from "zod";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
+import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   registerAppTool,
   registerAppResource,
@@ -163,31 +163,12 @@ app.get("/", async (_req, res) => {
 
 app.use(express.static(__dirname));
 
-async function handleMcp(req, res) {
-  const server = createServer();
-  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+const mcpHandler = createMcpHandler(createServer);
+const mcpNodeHandler = toNodeHandler(mcpHandler);
 
-  res.on("close", () => {
-    transport.close().catch(() => {});
-    server.close().catch(() => {});
-  });
-
-  try {
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
-  } catch (error) {
-    console.error("MCP error:", error);
-    if (!res.headersSent) {
-      res.status(500).json({
-        jsonrpc: "2.0",
-        error: { code: -32603, message: error?.message || "Internal server error" },
-        id: null
-      });
-    }
-  }
-}
-
-app.all("/mcp", handleMcp);
+app.all("/mcp", (req, res) => {
+  void mcpNodeHandler(req, res, req.body);
+});
 
 app.post("/api/chess/position", (req, res) => {
   try {
@@ -235,7 +216,7 @@ app.get("/api/mcp", (_req, res) => {
   });
 });
 
-app.all("/api/mcp", handleMcp);
+app.all("/api/mcp", (req, res) => {\n  void mcpNodeHandler(req, res, req.body);\n});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`ChessGame MCP App listening on 0.0.0.0:${PORT}/mcp`);
