@@ -229,16 +229,26 @@ async function play(from, to) {
         }]
       });
 
+      // MCP Apps exposes the automatic chat turn through ui/message.
+      // Keep the trigger minimal because the full authoritative FEN is already
+      // in updateModelContext().
+      if (!app.sendMessage) {
+        throw new Error("This MCP host does not expose ui/message");
+      }
+
       const followUp = await app.sendMessage({
         role: "user",
         content: [{
           type: "text",
-          text: "Continue the chess game immediately. Choose one legal Black move from the latest position and play it with play_move. Do not ask the human to confirm or type anything. After your Black move, stop and wait for the human's next board move."
+          text: "The human has just moved. Play Black's next legal move now with play_move using the latest FEN in context. Do not ask for confirmation."
         }]
       });
 
       if (followUp?.isError) {
-        console.warn("MCP Apps host rejected automatic follow-up message", followUp);
+        document.getElementById("status").textContent = "HOST REFUSED AUTO-MOVE";
+        console.error("MCP host rejected ui/message", followUp);
+      } else {
+        document.getElementById("status").textContent = "CHATGPT IS THINKING…";
       }
     }
   } catch (error) {
