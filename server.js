@@ -78,8 +78,7 @@ function createServer() {
     description: "Get the authoritative chess position and game status.",
     inputSchema: z.object({
       fen: z.string().optional()
-    }),
-    _meta: { ui: { resourceUri: RESOURCE_URI } }
+    })
   }, async ({ fen }) => {
     try {
       return result(state(gameFromFen(fen)));
@@ -94,8 +93,7 @@ function createServer() {
     inputSchema: z.object({
       fen: z.string(),
       square: z.string().optional()
-    }),
-    _meta: { ui: { resourceUri: RESOURCE_URI } }
+    })
   }, async ({ fen, square }) => {
     try {
       const game = gameFromFen(fen);
@@ -117,8 +115,7 @@ function createServer() {
       from: z.string(),
       to: z.string(),
       promotion: z.enum(["q", "r", "b", "n"]).default("q")
-    }),
-    _meta: { ui: { resourceUri: RESOURCE_URI } }
+    })
   }, async ({ fen, from, to, promotion }) => {
     try {
       const game = gameFromFen(fen);
@@ -133,8 +130,7 @@ function createServer() {
   registerAppTool(server, "reset_game", {
     title: "New Game",
     description: "Reset the chess game to the standard starting position.",
-    inputSchema: z.object({}),
-    _meta: { ui: { resourceUri: RESOURCE_URI } }
+    inputSchema: z.object({})
   }, async () => result(state(new Chess())));
 
   registerAppResource(
