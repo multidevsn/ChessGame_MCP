@@ -30,16 +30,24 @@ function render(){
   status.textContent=state.checkmate?"CHECKMATE":state.draw?"DRAW":state.check?"CHECK":state.gameOver?"GAME OVER":"";
 }
 async function call(name,args={}){
-  sync.innerHTML='<span class="dot"></span> MCP syncing…';
+  sync.innerHTML='<span class="dot"></span> Server syncing…';
+  const routes={
+    get_position:"/api/chess/position",
+    legal_moves:"/api/chess/legal",
+    play_move:"/api/chess/move",
+    reset_game:"/api/chess/reset"
+  };
   try{
-    const r=await fetch("/api/mcp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:Date.now(),method:"tools/call",params:{name,arguments:args}})});
-    if(!r.ok)throw Error("MCP HTTP "+r.status);
-    const data=await r.json();if(data.error)throw Error(data.error.message);
-    const parsed=JSON.parse(data.result.content[0].text);mcpOut.textContent=JSON.stringify(parsed,null,2);
-    sync.innerHTML='<span class="dot"></span> MCP connected';return parsed
-  }catch(e){sync.innerHTML='<span class="dot"></span> MCP error';mcpOut.textContent=e.message;throw e}
+    const endpoint=routes[name];
+    if(!endpoint)throw Error("Unknown chess action");
+    const r=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args)});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(data.error||("HTTP "+r.status));
+    mcpOut.textContent=JSON.stringify(data,null,2);
+    sync.innerHTML='<span class="dot"></span> Server connected';return data
+  }catch(e){sync.innerHTML='<span class="dot"></span> Connection error';mcpOut.textContent=e.message;throw e}
 }
-async function syncPosition(){const data=await call("get_position",{});state=data;render()}
+async function syncPosition(){const data=await call("get_position",{fen:state.fen});state=data;render()}
 async function showLegal(sq){try{const data=await call("legal_moves",{fen:state.fen,square:sq});legal=data.moves||[];render()}catch{legal=[];render()}}
 async function clickSquare(sq){
   if(state.gameOver)return;
@@ -59,5 +67,5 @@ document.getElementById("reset").onclick=async()=>{const data=await call("reset_
 document.getElementById("copyFen").onclick=()=>navigator.clipboard?.writeText(state.fen);
 document.getElementById("mcpPosition").onclick=()=>call("get_position",{fen:state.fen});
 document.getElementById("mcpMoves").onclick=()=>call("legal_moves",{fen:state.fen});
-document.getElementById("mcpStatus").onclick=()=>call("game_status",{fen:state.fen});
+document.getElementById("mcpStatus").onclick=()=>call("get_position",{fen:state.fen});
 render();syncPosition().catch(()=>{status.textContent="Impossible de synchroniser la position MCP";render()});
