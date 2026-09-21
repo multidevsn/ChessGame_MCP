@@ -84,7 +84,8 @@ function createServer() {
     inputSchema: z.object({
       fen: z.string(),
       square: z.string().optional()
-    })
+    }),
+    _meta: { ui: { resourceUri: RESOURCE_URI } }
   }, async ({ fen, square }) => {
     try {
       const game = gameFromFen(fen);
