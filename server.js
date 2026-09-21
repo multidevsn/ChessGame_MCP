@@ -173,7 +173,14 @@ const mcpHandler = createMcpHandler(createServer);
 const mcpNodeHandler = toNodeHandler(mcpHandler);
 
 app.all("/mcp", (req, res) => {
-  void mcpNodeHandler(req, res, req.body);
+  console.log("[MCP REQUEST]", req.method, req.originalUrl, "content-type=", req.headers["content-type"] || "");
+  res.on("finish", () => console.log("[MCP RESPONSE]", req.method, req.originalUrl, res.statusCode));
+  void mcpNodeHandler(req, res, req.body).catch(error => {
+    console.error("[MCP HANDLER ERROR]", error);
+    if (!res.headersSent) {
+      res.status(500).json({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
+    }
+  });
 });
 
 app.post("/api/chess/position", (req, res) => {
@@ -223,7 +230,14 @@ app.get("/api/mcp", (_req, res) => {
 });
 
 app.all("/api/mcp", (req, res) => {
-  void mcpNodeHandler(req, res, req.body);
+  console.log("[MCP COMPAT REQUEST]", req.method, req.originalUrl, "content-type=", req.headers["content-type"] || "");
+  res.on("finish", () => console.log("[MCP COMPAT RESPONSE]", req.method, req.originalUrl, res.statusCode));
+  void mcpNodeHandler(req, res, req.body).catch(error => {
+    console.error("[MCP COMPAT HANDLER ERROR]", error);
+    if (!res.headersSent) {
+      res.status(500).json({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
+    }
+  });
 });
 
 await ensureMcpAppBuild();
