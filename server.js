@@ -216,7 +216,9 @@ app.get("/api/mcp", (_req, res) => {
   });
 });
 
-app.all("/api/mcp", (req, res) => {\n  void mcpNodeHandler(req, res, req.body);\n});
+app.all("/api/mcp", (req, res) => {
+  void mcpNodeHandler(req, res, req.body);
+});
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`ChessGame MCP App listening on 0.0.0.0:${PORT}/mcp`);
