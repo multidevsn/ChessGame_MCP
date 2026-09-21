@@ -156,7 +156,6 @@ function createServer() {
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
 
 app.get("/", async (_req, res) => {
   try {
@@ -193,8 +192,10 @@ app.all("/mcp", (req, res) => {
   res.on("finish", () =>
     console.log("[MCP RESPONSE]", req.method, req.originalUrl, res.statusCode)
   );
-  void mcpNodeHandler(req, res, req.body);
+  void mcpNodeHandler(req, res);
 });
+
+app.use(express.json({ limit: "1mb" }));
 
 app.post("/api/chess/position", (req, res) => {
   try {
@@ -245,12 +246,7 @@ app.get("/api/mcp", (_req, res) => {
 app.all("/api/mcp", (req, res) => {
   console.log("[MCP COMPAT REQUEST]", req.method, req.originalUrl, "content-type=", req.headers["content-type"] || "");
   res.on("finish", () => console.log("[MCP COMPAT RESPONSE]", req.method, req.originalUrl, res.statusCode));
-  void mcpNodeHandler(req, res, req.body).catch(error => {
-    console.error("[MCP COMPAT HANDLER ERROR]", error);
-    if (!res.headersSent) {
-      res.status(500).json({ jsonrpc: "2.0", error: { code: -32603, message: "Internal server error" }, id: null });
-    }
-  });
+  void mcpNodeHandler(req, res);
 });
 
 await ensureMcpAppBuild();
